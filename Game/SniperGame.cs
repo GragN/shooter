@@ -18,7 +18,8 @@ internal sealed partial class SniperGame : GameWindow
     private enum SceneType
     {
         RangeCube,
-        DestructibleHouse
+        DestructibleHouse,
+        SteelPlate
     }
 
     private const float NormalFov = 65f;
@@ -56,6 +57,7 @@ internal sealed partial class SniperGame : GameWindow
     private readonly Random _random = new();
     private readonly Target _target = new();
     private readonly HouseTarget _house = new();
+    private readonly SteelPlateTarget _steel = new();
     private readonly WeaponProfile[] _weapons =
     {
         WeaponProfile.Svd(),
@@ -83,6 +85,8 @@ internal sealed partial class SniperGame : GameWindow
     private Shader? _shader;
     private Mesh? _cube;
     private Mesh? _disc;
+    private Mesh? _steelMesh;
+    private int _steelMeshRevision = -1;
 
     private int _crosshairVao;
     private int _crosshairVbo;
@@ -146,11 +150,32 @@ internal sealed partial class SniperGame : GameWindow
 
     private WeaponProfile ActiveWeapon => _weapons[_activeWeaponIndex];
     private BallisticProfile ActiveBallistics => ActiveWeapon.Ballistics;
-    private float ActiveSceneDistanceMeters => _activeScene == SceneType.RangeCube ? _target.DistanceMeters : _house.DistanceMeters;
-    private Vector3 ActiveSceneFocus => _activeScene == SceneType.RangeCube ? _target.Position : _house.ObserverFocus;
+    private float ActiveSceneDistanceMeters => _activeScene switch
+    {
+        SceneType.RangeCube => _target.DistanceMeters,
+        SceneType.DestructibleHouse => _house.DistanceMeters,
+        _ => _steel.DistanceMeters
+    };
+    private Vector3 ActiveSceneFocus => _activeScene switch
+    {
+        SceneType.RangeCube => _target.Position,
+        SceneType.DestructibleHouse => _house.ObserverFocus,
+        _ => _steel.Position
+    };
     private float ActiveSceneIntegrity01 => _activeScene == SceneType.RangeCube ? _target.Integrity01 : _house.Integrity01;
-    private int ActiveSceneDebrisCount => _activeScene == SceneType.RangeCube ? _target.Fragments.Count : _house.Fragments.Count;
-    private string ActiveSceneHudName => _activeScene == SceneType.RangeCube ? "RANGE+CUBE" : "HOUSE";
+    private int ActiveSceneDebrisCount => _activeScene switch
+    {
+        SceneType.RangeCube => _target.Fragments.Count,
+        SceneType.DestructibleHouse => _house.Fragments.Count,
+        _ => _steel.Fragments.Count
+    };
+    private string ActiveSceneHudName => SceneHudName(_activeScene);
+    private static string SceneHudName(SceneType scene) => scene switch
+    {
+        SceneType.RangeCube => "RANGE+CUBE",
+        SceneType.DestructibleHouse => "HOUSE",
+        _ => "STEEL S355 1M X 10MM"
+    };
 
     private Bullet? TrackedBulletCamera
     {

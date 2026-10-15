@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="OpenTK" Version="4.9.4" />
+    <Compile Include="GraphicsSmoke.cs" />
+    <Compile Include="../Ballistics/*.cs" />
+    <Compile Include="../Destruction/*.cs" />
+    <Compile Include="../Rendering/*.cs" />
+    <Compile Include="../Game/*.cs" Exclude="../Game/Program.cs" />
+  </ItemGroup>
+</Project>

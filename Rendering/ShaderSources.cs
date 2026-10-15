@@ -12,11 +12,13 @@ internal static class ShaderSources
         uniform mat4 projection;
 
         out vec3 Normal;
+        out vec3 WorldPosition;
 
         void main()
         {
             mat3 normalMatrix = transpose(inverse(mat3(model)));
             Normal = normalMatrix * aNormal;
+            WorldPosition = vec3(model * vec4(aPosition, 1.0));
             gl_Position = projection * view * model * vec4(aPosition, 1.0);
         }
         """;
@@ -26,9 +28,11 @@ internal static class ShaderSources
         out vec4 FragColor;
 
         in vec3 Normal;
+        in vec3 WorldPosition;
 
         uniform vec3 objectColor;
         uniform int useLighting;
+        uniform vec3 cameraPosition;
 
         void main()
         {
@@ -42,6 +46,14 @@ internal static class ShaderSources
             vec3 lightDir = normalize(vec3(-0.45, 0.85, 0.35));
             float diffuse = max(dot(n, lightDir), 0.0);
             float brightness = 0.40 + diffuse * 0.60;
+            if (useLighting == 2)
+            {
+                vec3 viewDirection = normalize(cameraPosition - WorldPosition);
+                vec3 halfDirection = normalize(lightDir + viewDirection);
+                float specular = pow(max(dot(n, halfDirection), 0.0), 40.0);
+                FragColor = vec4(objectColor * brightness + vec3(0.32) * specular, 1.0);
+                return;
+            }
             FragColor = vec4(objectColor * brightness, 1.0);
         }
         """;

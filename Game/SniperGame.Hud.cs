@@ -8,6 +8,7 @@ namespace Sniper3D;
 
 internal sealed partial class SniperGame
 {
+    private int _hudVertexCapacity = 4096;
     private void CreateHudOverlay()
     {
         _hudVao = GL.GenVertexArray();
@@ -90,10 +91,11 @@ internal sealed partial class SniperGame
         _shader.SetVector3("objectColor", new Vector3(0.78f, 0.80f, 0.82f));
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, _hudVbo);
+        EnsureHudBufferCapacity(lines.Count);
         GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lines.Count * sizeof(float), lines.ToArray());
 
         GL.BindVertexArray(_hudVao);
-        GL.LineWidth(2f);
+        GlLineWidth.Set(2f);
         GL.DrawArrays(PrimitiveType.Lines, 0, lines.Count / 3);
         GL.BindVertexArray(0);
 
@@ -152,6 +154,7 @@ internal sealed partial class SniperGame
         bool cancelHover = PointInRect(mouse, layout.CancelLeft, layout.ButtonTop, layout.ButtonWidth, layout.ButtonHeight);
         bool scene1Hover = PointInRect(mouse, layout.Scene1Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
         bool scene2Hover = PointInRect(mouse, layout.Scene2Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
+        bool scene3Hover = PointInRect(mouse, layout.Scene3Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
         bool weapon1Hover = PointInRect(mouse, layout.Weapon1Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
         bool weapon2Hover = PointInRect(mouse, layout.Weapon2Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
         bool weapon3Hover = PointInRect(mouse, layout.Weapon3Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
@@ -167,6 +170,10 @@ internal sealed partial class SniperGame
             layout.Scene2Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight,
             _menuScene == SceneType.DestructibleHouse ? new Vector3(0.34f, 0.36f, 0.38f) :
             scene2Hover ? new Vector3(0.25f, 0.27f, 0.29f) : new Vector3(0.17f, 0.18f, 0.19f));
+        DrawHudFilledRect(
+            layout.Scene3Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight,
+            _menuScene == SceneType.SteelPlate ? new Vector3(0.34f, 0.36f, 0.38f) :
+            scene3Hover ? new Vector3(0.25f, 0.27f, 0.29f) : new Vector3(0.17f, 0.18f, 0.19f));
 
         DrawHudFilledRect(
             layout.Weapon1Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight,
@@ -210,15 +217,20 @@ internal sealed partial class SniperGame
         DrawHudText(lines, sceneLabel, (ClientSize.X - sceneLabelWidth) * 0.5f, layout.Top + 39f, sectionScale);
         AddHudRect(lines, layout.Scene1Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
         AddHudRect(lines, layout.Scene2Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
+        AddHudRect(lines, layout.Scene3Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
 
-        const float sceneTextScale = 3.8f;
+        const float sceneTextScale = 2.6f;
         string scene1 = "RANGE CUBE";
         string scene2 = "HOUSE";
+        string scene3 = "STEEL 10MM";
         DrawHudText(lines, scene1,
             layout.Scene1Left + (layout.SceneButtonWidth - MeasureHudText(scene1, sceneTextScale)) * 0.5f,
             layout.SceneTop + 10f, sceneTextScale);
         DrawHudText(lines, scene2,
             layout.Scene2Left + (layout.SceneButtonWidth - MeasureHudText(scene2, sceneTextScale)) * 0.5f,
+            layout.SceneTop + 10f, sceneTextScale);
+        DrawHudText(lines, scene3,
+            layout.Scene3Left + (layout.SceneButtonWidth - MeasureHudText(scene3, sceneTextScale)) * 0.5f,
             layout.SceneTop + 10f, sceneTextScale);
 
         // --- Оружие ---
@@ -389,11 +401,21 @@ internal sealed partial class SniperGame
         _shader.SetVector3("objectColor", color);
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, _hudVbo);
+        EnsureHudBufferCapacity(lines.Count);
         GL.BufferSubData(BufferTarget.ArrayBuffer, IntPtr.Zero, lines.Count * sizeof(float), lines.ToArray());
         GL.BindVertexArray(_hudVao);
-        GL.LineWidth(width);
+        GlLineWidth.Set(width);
         GL.DrawArrays(PrimitiveType.Lines, 0, lines.Count / 3);
         GL.BindVertexArray(0);
+    }
+
+    private void EnsureHudBufferCapacity(int count)
+    {
+        if (count <= _hudVertexCapacity)
+            return;
+        while (_hudVertexCapacity < count)
+            _hudVertexCapacity *= 2;
+        GL.BufferData(BufferTarget.ArrayBuffer, _hudVertexCapacity * sizeof(float), IntPtr.Zero, BufferUsageHint.DynamicDraw);
     }
 
     private void AddHudRect(List<float> lines, float x, float y, float width, float height)
@@ -438,6 +460,7 @@ internal sealed partial class SniperGame
 
     private void DrawHudGlyph(List<float> lines, char ch, float x, float y, float s)
     {
+        ch = char.ToUpperInvariant(ch);
         void L(float x1, float y1, float x2, float y2) =>
             AddHudLine(lines, x + x1 * s, y + y1 * s, x + x2 * s, y + y2 * s);
 
@@ -476,6 +499,38 @@ internal sealed partial class SniperGame
 
         switch (ch)
         {
+            case 'B':
+                L(0f, 0f, 0f, 2f); L(0f, 0f, 0.7f, 0f);
+                L(0.7f, 0f, 1f, 0.5f); L(1f, 0.5f, 0.7f, 1f);
+                L(0f, 1f, 0.7f, 1f); L(0.7f, 1f, 1f, 1.5f);
+                L(1f, 1.5f, 0.7f, 2f); L(0.7f, 2f, 0f, 2f);
+                break;
+            case 'F':
+                L(0f, 2f, 0f, 0f); L(0f, 0f, 1f, 0f); L(0f, 1f, 0.8f, 1f);
+                break;
+            case 'H':
+                L(0f, 0f, 0f, 2f); L(1f, 0f, 1f, 2f); L(0f, 1f, 1f, 1f);
+                break;
+            case 'U':
+                L(0f, 0f, 0f, 2f); L(0f, 2f, 1f, 2f); L(1f, 2f, 1f, 0f);
+                break;
+            case 'Q':
+                L(0f, 0f, 1f, 0f); L(1f, 0f, 1f, 2f);
+                L(1f, 2f, 0f, 2f); L(0f, 2f, 0f, 0f); L(0.6f, 1.4f, 1.1f, 2.2f);
+                break;
+            case 'J':
+                L(0f, 0f, 1f, 0f); L(0.7f, 0f, 0.7f, 2f); L(0.7f, 2f, 0f, 2f); L(0f, 2f, 0f, 1.5f);
+                break;
+            case 'Z':
+                L(0f, 0f, 1f, 0f); L(1f, 0f, 0f, 2f); L(0f, 2f, 1f, 2f);
+                break;
+            case '-': L(0.1f, 1f, 0.9f, 1f); break;
+            case '[':
+                L(0.8f, 0f, 0.2f, 0f); L(0.2f, 0f, 0.2f, 2f); L(0.2f, 2f, 0.8f, 2f);
+                break;
+            case ']':
+                L(0.2f, 0f, 0.8f, 0f); L(0.8f, 0f, 0.8f, 2f); L(0.8f, 2f, 0.2f, 2f);
+                break;
             case 'A':
                 L(0f, 2f, 0.5f, 0f);
                 L(0.5f, 0f, 1f, 2f);

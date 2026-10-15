@@ -9,6 +9,7 @@ internal sealed class BallisticProfile
     public float MassKg { get; init; } = 0.00956f;
     public float DiameterMeters { get; init; } = 0.00792f;
     public float MuzzleVelocityMps { get; init; } = 820f;
+    public ProjectileConstruction Construction { get; init; } = ProjectileConstruction.LeadCoreFmj;
 
     // Реальный боеприпас не выдаёт абсолютно одинаковую скорость выстрел за выстрелом.
     // Это стандартное отклонение начальной скорости для гауссового распределения.

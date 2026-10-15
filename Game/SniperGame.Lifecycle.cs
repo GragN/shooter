@@ -15,6 +15,7 @@ internal sealed partial class SniperGame
         GL.ClearColor(0.30f, 0.32f, 0.34f, 1f);
         GL.Enable(EnableCap.DepthTest);
         GL.Enable(EnableCap.Multisample);
+        GlLineWidth.Initialize();
 
         _shader = new Shader(ShaderSources.Vertex, ShaderSources.Fragment);
         _cube = Mesh.CreateCube();
@@ -99,6 +100,14 @@ internal sealed partial class SniperGame
             return;
         }
 
+        if (_activeScene == SceneType.SteelPlate)
+        {
+            if (KeyboardState.IsKeyPressed(Keys.LeftBracket))
+                RotateSteelPlate(-5f);
+            if (KeyboardState.IsKeyPressed(Keys.RightBracket))
+                RotateSteelPlate(5f);
+        }
+
         if (KeyboardState.IsKeyPressed(Keys.T))
         {
             if (_impactPredictionEnabled)
@@ -176,8 +185,10 @@ internal sealed partial class SniperGame
         UpdateBullets(dt);
         if (_activeScene == SceneType.RangeCube)
             _target.UpdatePhysics(dt, 0f, _target.Position.Z - 10f);
-        else
+        else if (_activeScene == SceneType.DestructibleHouse)
             _house.UpdatePhysics(dt, 0f);
+        else
+            _steel.UpdatePhysics(dt);
 
         _titleRefreshTimer += dt;
         if (_titleRefreshTimer >= 0.1f)
@@ -378,6 +389,9 @@ internal sealed partial class SniperGame
             }
         }
 
+        if (!_distanceMenuOpen)
+            DrawSteelHud();
+
         // Любой PIP-pass обязан вернуть полный viewport перед SwapBuffers.
         GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
         SwapBuffers();
@@ -391,6 +405,7 @@ internal sealed partial class SniperGame
         _shader.Use();
         _shader.SetMatrix4("view", view);
         _shader.SetMatrix4("projection", projection);
+        _shader.SetVector3("cameraPosition", view.Inverted().ExtractTranslation());
 
         DrawRange();
         DrawTarget();
@@ -421,9 +436,12 @@ internal sealed partial class SniperGame
         else
             leftFromShooter = Vector3.Normalize(leftFromShooter);
 
+        // A close inspection view makes millimetre-scale steel damage visible.
+        float observerDistance = _activeScene == SceneType.SteelPlate ? 1.8f : 10f;
+        float observerOffset = _activeScene == SceneType.SteelPlate ? 0.65f : 5f;
         cameraPosition = targetPosition
-            + targetToShooter * 10f
-            + leftFromShooter * 5f;
+            + targetToShooter * observerDistance
+            + leftFromShooter * observerOffset;
 
         cameraFront = targetPosition - cameraPosition;
         if (cameraFront.LengthSquared < 0.000001f)
@@ -527,6 +545,7 @@ internal sealed partial class SniperGame
         base.OnUnload();
 
         _disc?.Dispose();
+        _steelMesh?.Dispose();
         _cube?.Dispose();
         _shader?.Dispose();
 

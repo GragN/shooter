@@ -29,6 +29,8 @@ internal sealed class Bullet
 
     public float SpeedMps => Velocity.Length;
     public float InitialSpeedMps { get; }
+    public float MassKg { get; private set; }
+    public float KineticEnergyJoules => 0.5f * MassKg * Velocity.LengthSquared;
     public BallisticProfile Profile { get; }
 
     public Bullet(Vector3 position, Vector3 velocity, BallisticProfile profile)
@@ -39,6 +41,7 @@ internal sealed class Bullet
         Velocity = velocity;
         PreviousVelocity = velocity;
         InitialSpeedMps = velocity.Length;
+        MassKg = profile.MassKg;
 
         Vector3 forward = velocity.LengthSquared > 0.000001f
             ? Vector3.Normalize(velocity)
@@ -108,10 +111,10 @@ internal sealed class Bullet
         // Мы добавляем только приращение между предыдущим и новым моментом,
         // поэтому оно не зависит от FPS и не дублируется на следующем шаге.
         float nextAgeSeconds = AgeSeconds + dt;
-        float targetSpinDriftMeters = SpinDriftModel.CumulativeDriftMeters(
+        float targetSpinDriftMeters = _spinDriftEnabled ? SpinDriftModel.CumulativeDriftMeters(
             Profile.GyroscopicStabilityFactor,
             nextAgeSeconds,
-            Profile.RiflingTwistDirection);
+            Profile.RiflingTwistDirection) : _appliedSpinDriftMeters;
         float deltaSpinDriftMeters = targetSpinDriftMeters - _appliedSpinDriftMeters;
         if (MathF.Abs(deltaSpinDriftMeters) > 0.0000001f)
         {
@@ -187,7 +190,19 @@ internal sealed class Bullet
         _lingerAfterImpact = 0.18f;
     }
 
-    private static Vector3 Acceleration(
+    public void ContinueAfterSteelImpact(Vector3 exitPosition, Vector3 exitVelocity, float massKg)
+    {
+        Position = PreviousPosition = exitPosition;
+        Velocity = PreviousVelocity = exitVelocity;
+        MassKg = massKg;
+        // Spin drift is a free-flight approximation; a deformed projectile no
+        // longer has the original gyroscopic stability after metal contact.
+        _spinDriftEnabled = false;
+    }
+
+    private bool _spinDriftEnabled = true;
+
+    private Vector3 Acceleration(
         Vector3 position,
         Vector3 velocity,
         float timeSeconds,
@@ -222,7 +237,7 @@ internal sealed class Bullet
             * profile.AirDensityKgPerM3
             * effectiveCd
             * profile.CrossSectionAreaM2
-            / profile.MassKg;
+            / MassKg;
 
         Vector3 dragAcceleration = -dragFactor * relativeSpeed * relativeVelocity;
         return gravity + dragAcceleration;

@@ -9,7 +9,7 @@ internal sealed class Mesh : IDisposable
     private readonly int _ebo;
     private readonly int _indexCount;
 
-    private Mesh(float[] vertices, uint[] indices)
+    internal Mesh(float[] vertices, uint[] indices)
     {
         _indexCount = indices.Length;
 

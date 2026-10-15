@@ -16,9 +16,10 @@ internal readonly record struct ProjectileImpactData(
     float MomentumKgMps,
     float EnergyPerAreaJPerM2,
     float SectionalMassKgPerM2,
-    Vector3 Direction)
+    Vector3 Direction,
+    ProjectileConstruction Construction = ProjectileConstruction.LeadCoreFmj)
 {
-    public static ProjectileImpactData From(BallisticProfile profile, Vector3 velocity)
+    public static ProjectileImpactData From(BallisticProfile profile, Vector3 velocity, float? remainingMassKg = null)
     {
         float speed = velocity.Length;
         Vector3 direction = speed > 0.000001f
@@ -26,18 +27,20 @@ internal readonly record struct ProjectileImpactData(
             : -Vector3.UnitZ;
 
         float area = MathF.Max(profile.CrossSectionAreaM2, 0.000000001f);
-        float energy = profile.KineticEnergyJoules(speed);
-        float momentum = profile.MassKg * speed;
+        float mass = remainingMassKg ?? profile.MassKg;
+        float energy = 0.5f * mass * speed * speed;
+        float momentum = mass * speed;
 
         return new ProjectileImpactData(
-            profile.MassKg,
+            mass,
             profile.DiameterMeters,
             area,
             speed,
             energy,
             momentum,
             energy / area,
-            profile.MassKg / area,
-            direction);
+            mass / area,
+            direction,
+            profile.Construction);
     }
 }

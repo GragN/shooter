@@ -15,8 +15,10 @@ internal sealed partial class SniperGame
 
         if (_activeScene == SceneType.RangeCube)
             DrawCubeRange();
-        else
+        else if (_activeScene == SceneType.DestructibleHouse)
             DrawHouseRange();
+        else
+            DrawSteelRange();
     }
 
     private void DrawCubeRange()
@@ -83,8 +85,10 @@ internal sealed partial class SniperGame
 
         if (_activeScene == SceneType.RangeCube)
             DrawConcreteCubeTarget();
-        else
+        else if (_activeScene == SceneType.DestructibleHouse)
             DrawDestructibleHouse();
+        else
+            DrawSteelPlate();
     }
 
     private void DrawConcreteCubeTarget()
@@ -472,7 +476,7 @@ internal sealed partial class SniperGame
         _shader.SetVector3("objectColor", new Vector3(0.82f, 0.83f, 0.84f));
 
         GL.BindVertexArray(_crosshairVao);
-        GL.LineWidth(2f);
+        GlLineWidth.Set(2f);
         GL.DrawArrays(PrimitiveType.Lines, 0, 4);
         GL.BindVertexArray(0);
 

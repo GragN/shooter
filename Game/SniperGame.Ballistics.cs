@@ -93,7 +93,7 @@ internal sealed partial class SniperGame
             found = true;
         }
 
-        // Существующий бетон. Разрушенное отверстие луч пропускает, поэтому
+        // Существующий материал. Разрушенное отверстие луч пропускает, поэтому
         // через него можно захватить более дальнюю стену.
         if (TryHitActiveDestructibleSegment(rayOrigin, rayEnd, out Vector3 concretePoint))
             ConsiderPoint(concretePoint);
@@ -303,7 +303,8 @@ internal sealed partial class SniperGame
         // отрезке физического шага, затем выбираем самое раннее по hitT.
         float concreteT = float.PositiveInfinity;
         Vector3 concreteImpact = default;
-        bool hasConcrete = TryHitActiveDestructibleSegment(from, to, out concreteT, out concreteImpact);
+        bool hasConcrete = TryHitActiveDestructibleSegment(from, to, out concreteT, out concreteImpact,
+            bullet.Profile.DiameterMeters * 0.5f);
 
         bool hasGround = false;
         float groundT = float.PositiveInfinity;
@@ -332,7 +333,13 @@ internal sealed partial class SniperGame
 
             ProjectileImpactData projectile = ProjectileImpactData.From(
                 bullet.Profile,
-                bullet.Velocity);
+                bullet.Velocity,
+                bullet.MassKg);
+            if (_activeScene == SceneType.SteelPlate)
+            {
+                RegisterSteelHit(bullet, concreteImpact, projectile, firstRegisteredHit);
+                return;
+            }
             ConcreteImpactResult impact = ApplyImpactToActiveDestructible(
                 concreteImpact,
                 projectile);
@@ -411,7 +418,7 @@ internal sealed partial class SniperGame
         _lastMuzzleVelocity = bullet.InitialSpeedMps;
         _lastFlightTime = bullet.AgeSeconds;
         _lastImpactSpeed = bullet.SpeedMps;
-        _lastImpactEnergy = bullet.Profile.KineticEnergyJoules(_lastImpactSpeed);
+        _lastImpactEnergy = bullet.KineticEnergyJoules;
     }
 
     private bool TryHitActiveDestructibleSegment(Vector3 from, Vector3 to, out Vector3 hitPoint)
@@ -421,11 +428,15 @@ internal sealed partial class SniperGame
         Vector3 from,
         Vector3 to,
         out float hitT,
-        out Vector3 hitPoint)
+        out Vector3 hitPoint,
+        float bulletRadius = 0f)
     {
-        return _activeScene == SceneType.RangeCube
-            ? _target.TryHitSegment(from, to, out hitT, out hitPoint)
-            : _house.TryHitSegment(from, to, out hitT, out hitPoint);
+        return _activeScene switch
+        {
+            SceneType.RangeCube => _target.TryHitSegment(from, to, out hitT, out hitPoint),
+            SceneType.DestructibleHouse => _house.TryHitSegment(from, to, out hitT, out hitPoint),
+            _ => _steel.TryHitSegment(from, to, out hitT, out hitPoint, bulletRadius)
+        };
     }
 
     private ConcreteImpactResult ApplyImpactToActiveDestructible(
@@ -441,15 +452,19 @@ internal sealed partial class SniperGame
     {
         if (_activeScene == SceneType.RangeCube)
             _target.SetDistance(distanceMeters, _cameraPosition.Z);
-        else
+        else if (_activeScene == SceneType.DestructibleHouse)
             _house.SetDistance(distanceMeters, _cameraPosition.Z);
+        else
+            _steel.SetDistance(distanceMeters, _cameraPosition.Z);
     }
 
     private void ResetActiveDestructibleDamage()
     {
         if (_activeScene == SceneType.RangeCube)
             _target.ResetDamage();
-        else
+        else if (_activeScene == SceneType.DestructibleHouse)
             _house.ResetDamage();
+        else
+            _steel.ResetDamage();
     }
 }

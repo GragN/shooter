@@ -60,6 +60,13 @@ internal sealed partial class SniperGame
             return;
         }
 
+        if (PointInRect(mouse, layout.Scene3Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight))
+        {
+            _menuScene = SceneType.SteelPlate;
+            UpdateWindowTitle();
+            return;
+        }
+
         if (PointInRect(mouse, layout.Weapon1Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight))
         {
             _menuWeaponIndex = 0;
@@ -194,10 +201,11 @@ internal sealed partial class SniperGame
         float sliderRight = right - 72f;
 
         const float sceneGap = 14f;
-        float sceneButtonWidth = (sliderRight - sliderLeft - sceneGap) * 0.5f;
+        float sceneButtonWidth = (sliderRight - sliderLeft - sceneGap * 2f) / 3f;
         const float sceneButtonHeight = 36f;
         float scene1Left = sliderLeft;
         float scene2Left = scene1Left + sceneButtonWidth + sceneGap;
+        float scene3Left = scene2Left + sceneButtonWidth + sceneGap;
         float sceneTop = top + 62f;
 
         const float weaponGap = 10f;
@@ -224,7 +232,7 @@ internal sealed partial class SniperGame
         return new DistanceMenuLayout(
             left, top, right, bottom,
             sliderLeft, sliderRight,
-            scene1Left, scene2Left, sceneTop, sceneButtonWidth, sceneButtonHeight,
+            scene1Left, scene2Left, scene3Left, sceneTop, sceneButtonWidth, sceneButtonHeight,
             weapon1Left, weapon2Left, weapon3Left, weapon4Left, weaponTop, weaponButtonWidth, weaponButtonHeight,
             distanceSliderY, scopeSliderY, windSliderY,
             applyLeft, cancelLeft, buttonTop, buttonWidth, buttonHeight);
@@ -239,6 +247,7 @@ internal sealed partial class SniperGame
         float SliderRight,
         float Scene1Left,
         float Scene2Left,
+        float Scene3Left,
         float SceneTop,
         float SceneButtonWidth,
         float SceneButtonHeight,
@@ -312,7 +321,7 @@ internal sealed partial class SniperGame
         _lastFlightTime = 0f;
         _lastImpactSpeed = 0f;
         _lastImpactEnergy = 0f;
-        _lastShot = _activeScene == SceneType.RangeCube ? "CUBE RESTORED" : "HOUSE RESTORED";
+        _lastShot = $"{ActiveSceneHudName} RESTORED";
         _hasPredictedImpact = false;
         _impactPredictionRefreshTimer = ImpactPredictionRefreshSeconds;
 

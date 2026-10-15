@@ -13,7 +13,7 @@ internal static class Program
         var nativeWindowSettings = new NativeWindowSettings
         {
             ClientSize = new Vector2i(1280, 720),
-            Title = "Sniper 3D - v3.3 CONCRETE MATERIAL",
+            Title = "Sniper 3D - v3.4 STEEL",
             APIVersion = new Version(3, 3),
             Profile = ContextProfile.Core,
             NumberOfSamples = 4
