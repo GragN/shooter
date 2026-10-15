@@ -6,6 +6,7 @@ namespace Sniper3D;
 internal sealed class Shader : IDisposable
 {
     private readonly int _handle;
+    private readonly Dictionary<string, int> _uniformLocations = new(StringComparer.Ordinal);
 
     public Shader(string vertexSource, string fragmentSource)
     {
@@ -37,20 +38,34 @@ internal sealed class Shader : IDisposable
 
     public void SetMatrix4(string name, Matrix4 value)
     {
-        int location = GL.GetUniformLocation(_handle, name);
+        int location = GetUniformLocation(name);
         GL.UniformMatrix4(location, false, ref value);
     }
 
     public void SetVector3(string name, Vector3 value)
     {
-        int location = GL.GetUniformLocation(_handle, name);
+        int location = GetUniformLocation(name);
         GL.Uniform3(location, value);
     }
 
     public void SetInt(string name, int value)
     {
-        int location = GL.GetUniformLocation(_handle, name);
+        int location = GetUniformLocation(name);
         GL.Uniform1(location, value);
+    }
+
+    /// <summary>
+    /// Uniform locations are stable for the lifetime of a linked program.
+    /// Caching them avoids an OpenGL driver lookup for every voxel draw call.
+    /// </summary>
+    private int GetUniformLocation(string name)
+    {
+        if (_uniformLocations.TryGetValue(name, out int location))
+            return location;
+
+        location = GL.GetUniformLocation(_handle, name);
+        _uniformLocations.Add(name, location);
+        return location;
     }
 
     private static int CompileShader(ShaderType type, string source)

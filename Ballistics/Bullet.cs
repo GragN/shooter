@@ -7,11 +7,6 @@ namespace Sniper3D;
 /// </summary>
 internal sealed class Bullet
 {
-    private const int MaxTrailPoints = 80;
-    private const float TrailSampleInterval = 0.004f;
-
-    private readonly List<Vector3> _trail = new(MaxTrailPoints);
-    private float _trailTimer;
     private float _lingerAfterImpact;
 
     // Горизонтальная ось вправо относительно направления выстрела.
@@ -32,7 +27,6 @@ internal sealed class Bullet
     public bool HasImpacted { get; private set; }
     public bool IsAlive { get; private set; } = true;
 
-    public IReadOnlyList<Vector3> Trail => _trail;
     public float SpeedMps => Velocity.Length;
     public float InitialSpeedMps { get; }
     public BallisticProfile Profile { get; }
@@ -54,7 +48,6 @@ internal sealed class Bullet
             ? Vector3.Normalize(right)
             : Vector3.UnitX;
 
-        _trail.Add(position);
     }
 
     public void Step(
@@ -129,13 +122,6 @@ internal sealed class Bullet
         DistanceTraveledMeters += (Position - PreviousPosition).Length;
         AgeSeconds = nextAgeSeconds;
 
-        _trailTimer += dt;
-        if (_trailTimer >= TrailSampleInterval)
-        {
-            _trailTimer -= TrailSampleInterval;
-            AddTrailPoint(Position);
-        }
-
         // Защита от вечных пуль, улетевших далеко от полигона. Калибровочный
         // расчёт ZERO может временно отключить эти границы, чтобы найти высокую
         // навесную траекторию для медленного боеприпаса.
@@ -188,7 +174,6 @@ internal sealed class Bullet
         float epsilon = MathF.Max(0.0005f, Profile.DiameterMeters * 0.05f);
         Position += direction * epsilon;
         PreviousPosition = Position;
-        AddTrailPoint(Position);
     }
 
     public void Impact(Vector3 impactPosition)
@@ -198,7 +183,6 @@ internal sealed class Bullet
 
         Position = impactPosition;
         PreviousPosition = impactPosition;
-        AddTrailPoint(impactPosition);
         HasImpacted = true;
         _lingerAfterImpact = 0.18f;
     }
@@ -244,10 +228,4 @@ internal sealed class Bullet
         return gravity + dragAcceleration;
     }
 
-    private void AddTrailPoint(Vector3 point)
-    {
-        if (_trail.Count == MaxTrailPoints)
-            _trail.RemoveAt(0);
-        _trail.Add(point);
-    }
 }

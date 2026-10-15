@@ -16,6 +16,13 @@ internal sealed class Target
     private const float DebrisPhysicsStepSeconds = 1f / 120f;
     private const float GravityMps2 = 9.80665f;
 
+    private static readonly (int X, int Y, int Z)[] NeighbourOffsets =
+    {
+        (1, 0, 0), (-1, 0, 0),
+        (0, 1, 0), (0, -1, 0),
+        (0, 0, 1), (0, 0, -1)
+    };
+
     private readonly bool[,,] _intact = new bool[Resolution, Resolution, Resolution];
     private readonly float[,,] _damage = new float[Resolution, Resolution, Resolution];
     private readonly List<ConcreteFragment> _fragments = new();
@@ -85,6 +92,23 @@ internal sealed class Target
 
     public bool IsCellIntact(int x, int y, int z)
         => _intact[x, y, z];
+
+    /// <summary>
+    /// Fully enclosed voxels cannot contribute visible pixels. They remain in
+    /// the physical grid and become renderable as soon as damage exposes them.
+    /// </summary>
+    public bool IsCellExposed(int x, int y, int z)
+    {
+        if (!_intact[x, y, z])
+            return false;
+
+        return x == 0 || !_intact[x - 1, y, z]
+            || x == Resolution - 1 || !_intact[x + 1, y, z]
+            || y == 0 || !_intact[x, y - 1, z]
+            || y == Resolution - 1 || !_intact[x, y + 1, z]
+            || z == 0 || !_intact[x, y, z - 1]
+            || z == Resolution - 1 || !_intact[x, y, z + 1];
+    }
 
     public float GetCellDamage01(int x, int y, int z)
         => MathHelper.Clamp(_damage[x, y, z], 0f, 1f);
@@ -540,17 +564,10 @@ internal sealed class Target
             queue.Enqueue(new CellIndex(x, 0, z));
         }
 
-        var neighbours = new (int X, int Y, int Z)[]
-        {
-            (1, 0, 0), (-1, 0, 0),
-            (0, 1, 0), (0, -1, 0),
-            (0, 0, 1), (0, 0, -1)
-        };
-
         while (queue.Count > 0)
         {
             CellIndex c = queue.Dequeue();
-            foreach ((int dx, int dy, int dz) in neighbours)
+            foreach ((int dx, int dy, int dz) in NeighbourOffsets)
             {
                 int nx = c.X + dx;
                 int ny = c.Y + dy;
