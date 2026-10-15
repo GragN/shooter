@@ -1,0 +1,22 @@
+# .NET build output
+bin/
+obj/
+
+# User-specific IDE files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+.idea/
+
+# Test and coverage output
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# OS metadata
+.DS_Store
+Thumbs.db
