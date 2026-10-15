@@ -87,6 +87,9 @@ internal sealed partial class SniperGame : GameWindow
     private Mesh? _disc;
     private Mesh? _steelMesh;
     private int _steelMeshRevision = -1;
+    private Mesh? _concreteMesh;
+    private int _concreteMeshRevision = -1;
+    private readonly Dictionary<ConcreteFragment, Mesh> _concreteFragmentMeshes = new();
 
     private int _crosshairVao;
     private int _crosshairVbo;

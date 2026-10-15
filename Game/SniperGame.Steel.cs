@@ -19,7 +19,7 @@ internal sealed partial class SniperGame
         };
         _lastShot = $"STEEL {action} | ANGLE {result.IncidenceDegrees:0} DEG | LOSS {result.DepositedEnergyJoules:0} J";
         if (result.Outcome != SteelImpactOutcome.Stopped && result.ExitVelocity.LengthSquared > 25f)
-            bullet.ContinueAfterSteelImpact(exit, result.ExitVelocity, result.ResidualMassKg);
+            bullet.ContinueAfterMaterialImpact(exit, result.ExitVelocity, result.ResidualMassKg);
         else
             bullet.Impact(point);
         UpdateWindowTitle();

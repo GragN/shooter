@@ -384,6 +384,22 @@ internal sealed partial class SniperGame
         float integrityPercent = ActiveSceneIntegrity01 * 100f;
         string objectName = _activeScene == SceneType.RangeCube ? "CUBE" : "HOUSE";
 
+        if (_activeScene == SceneType.RangeCube)
+        {
+            if ((impact.Perforated || impact.Ricochet) && impact.ResidualEnergyJoules > 0f)
+            {
+                bullet.ContinueAfterMaterialImpact(impact.ExitPosition, impact.ExitVelocity, impact.ResidualMassKg);
+                _lastShot = $"CUBE {(impact.Ricochet ? "RICOCHET" : "PERFORATED")} | EXIT {impact.ResidualSpeedMps:0} M/S";
+            }
+            else
+            {
+                bullet.Impact(impactPoint);
+                _lastShot = $"CUBE STOPPED | PEN {impact.PenetrationDepthMeters * 100f:0.0} CM | CHIPS {impact.DirectlyDestroyedCellCount} | DETACHED {impact.StructurallyDetachedCellCount}";
+            }
+            UpdateWindowTitle();
+            return;
+        }
+
         if (impact.Perforated && impact.ResidualSpeedMps > 5f)
         {
             _lastShot =

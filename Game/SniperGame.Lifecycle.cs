@@ -184,7 +184,7 @@ internal sealed partial class SniperGame
         UpdateAutomaticFire(dt);
         UpdateBullets(dt);
         if (_activeScene == SceneType.RangeCube)
-            _target.UpdatePhysics(dt, 0f, _target.Position.Z - 10f);
+            _target.UpdatePhysics(dt, 0f);
         else if (_activeScene == SceneType.DestructibleHouse)
             _house.UpdatePhysics(dt, 0f);
         else
@@ -390,7 +390,10 @@ internal sealed partial class SniperGame
         }
 
         if (!_distanceMenuOpen)
+        {
             DrawSteelHud();
+            DrawConcreteHud();
+        }
 
         // Любой PIP-pass обязан вернуть полный viewport перед SwapBuffers.
         GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
@@ -437,8 +440,8 @@ internal sealed partial class SniperGame
             leftFromShooter = Vector3.Normalize(leftFromShooter);
 
         // A close inspection view makes millimetre-scale steel damage visible.
-        float observerDistance = _activeScene == SceneType.SteelPlate ? 1.8f : 10f;
-        float observerOffset = _activeScene == SceneType.SteelPlate ? 0.65f : 5f;
+        float observerDistance = _activeScene switch { SceneType.SteelPlate => 1.8f, SceneType.RangeCube => 2.3f, _ => 10f };
+        float observerOffset = _activeScene switch { SceneType.SteelPlate => 0.65f, SceneType.RangeCube => 1f, _ => 5f };
         cameraPosition = targetPosition
             + targetToShooter * observerDistance
             + leftFromShooter * observerOffset;
@@ -546,6 +549,8 @@ internal sealed partial class SniperGame
 
         _disc?.Dispose();
         _steelMesh?.Dispose();
+        _concreteMesh?.Dispose();
+        foreach (Mesh mesh in _concreteFragmentMeshes.Values) mesh.Dispose();
         _cube?.Dispose();
         _shader?.Dispose();
 

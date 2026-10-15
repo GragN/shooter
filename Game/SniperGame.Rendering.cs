@@ -93,41 +93,52 @@ internal sealed partial class SniperGame
 
     private void DrawConcreteCubeTarget()
     {
-        float cell = _target.CellSizeMeters;
-        float renderedCell = cell * 0.992f;
-        int resolution = _target.GridResolution;
-
-        for (int x = 0; x < resolution; x++)
-        for (int y = 0; y < resolution; y++)
-        for (int z = 0; z < resolution; z++)
+        if (_shader is null) return;
+        if (_concreteMeshRevision != _target.Revision)
         {
-            if (!_target.IsCellExposed(x, y, z))
-                continue;
-
-            Vector3 position = _target.GetCellWorldPosition(x, y, z);
-            int shadeIndex = (x * 17 + y * 7 + z * 13) % 6;
-            float damage = _target.GetCellDamage01(x, y, z);
-            float shade = (0.385f + shadeIndex * 0.010f) * (1f - 0.28f * damage);
-            Vector3 concrete = new(shade, shade + 0.006f, shade + 0.011f);
-            DrawCube(position, new Vector3(renderedCell), concrete);
+            var geometry = ConcreteMeshGeometry.Build(_target);
+            Mesh replacement = new(geometry.Vertices, geometry.Indices, vertexColors: true);
+            _concreteMesh?.Dispose();
+            _concreteMesh = replacement;
+            _concreteMeshRevision = _target.Revision;
         }
-
+        _shader.Use();
+        _shader.SetInt("useLighting", 3);
+        _shader.SetMatrix4("model", Matrix4.CreateTranslation(_target.Position));
+        _concreteMesh?.Draw();
         foreach (ConcreteFragment fragment in _target.Fragments)
         {
-            DrawCubeRotated(
-                fragment.Position,
-                fragment.SizeMeters,
-                fragment.Color,
-                fragment.RotationRadians);
+            if (fragment.LocalVoxelCenters is null)
+                DrawCubeRotated(fragment.Position, fragment.SizeMeters, fragment.Color, fragment.RotationRadians);
+            else
+            {
+                if (!_concreteFragmentMeshes.TryGetValue(fragment, out Mesh? mesh))
+                {
+                    var data = ConcreteMeshGeometry.BuildFragment(fragment);
+                    mesh = new(data.Vertices, data.Indices, vertexColors: true);
+                    _concreteFragmentMeshes.Add(fragment, mesh);
+                }
+                Matrix4 rotation = Matrix4.CreateRotationX(fragment.RotationRadians.X)
+                    * Matrix4.CreateRotationY(fragment.RotationRadians.Y) * Matrix4.CreateRotationZ(fragment.RotationRadians.Z);
+                _shader.Use();
+                _shader.SetInt("useLighting", 3);
+                _shader.SetMatrix4("model", rotation * Matrix4.CreateTranslation(fragment.Position));
+                mesh.Draw();
+            }
         }
-
+        foreach (ConcreteFragment old in _concreteFragmentMeshes.Keys.Where(f => !_target.Fragments.Contains(f)).ToArray())
+        {
+            _concreteFragmentMeshes[old].Dispose();
+            _concreteFragmentMeshes.Remove(old);
+        }
         float cubeBottom = _target.Position.Y - _target.HalfSizeMeters;
         if (cubeBottom > 0.05f)
         {
-            DrawCube(
-                new Vector3(_target.Position.X, cubeBottom * 0.5f, _target.Position.Z),
-                new Vector3(0.24f, cubeBottom, 0.24f),
-                new Vector3(0.28f, 0.29f, 0.30f));
+            DrawCube(new(_target.Position.X, cubeBottom - 0.06f, _target.Position.Z), new(1.1f, 0.12f, 1.1f), new(0.27f));
+            for (int x = -1; x <= 1; x += 2)
+            for (int z = -1; z <= 1; z += 2)
+                DrawCube(new(_target.Position.X+x*0.4f, (cubeBottom-0.12f)*0.5f, _target.Position.Z+z*0.4f),
+                    new(0.12f, cubeBottom-0.12f, 0.12f), new(0.25f));
         }
     }
 

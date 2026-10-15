@@ -9,8 +9,10 @@
   <ItemGroup>
     <PackageReference Include="OpenTK" Version="4.9.4" />
     <Compile Include="Program.cs" />
+    <Compile Include="ConcreteTests.cs" />
     <Compile Include="../Ballistics/*.cs" Link="Ballistics/%(Filename)%(Extension)" />
     <Compile Include="../Destruction/*.cs" Link="Destruction/%(Filename)%(Extension)" />
     <Compile Include="../Rendering/SteelPlateGeometry.cs" Link="SteelPlateGeometry.cs" />
+    <Compile Include="../Rendering/ConcreteMeshGeometry.cs" Link="ConcreteMeshGeometry.cs" />
   </ItemGroup>
 </Project>

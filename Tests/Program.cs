@@ -148,7 +148,7 @@ Run("Exit continuation uses residual mass and energy; no repeated self-hit", () 
     Check(plate.TryHitSegment(bullet.PreviousPosition, bullet.Position, out float t, out Vector3 point));
     bullet.MoveToSegmentFraction(t);
     var result = plate.ApplyImpact(point, ProjectileImpactData.From(profile, bullet.Velocity), out Vector3 exit);
-    bullet.ContinueAfterSteelImpact(exit, result.ExitVelocity, result.ResidualMassKg);
+    bullet.ContinueAfterMaterialImpact(exit, result.ExitVelocity, result.ResidualMassKg);
     Near(bullet.KineticEnergyJoules, result.ResidualEnergyJoules, 0.01f);
     bullet.Step(0.001f, new WindField(1), 0.002f, 0f);
     Check(!plate.TryHitSegment(bullet.PreviousPosition, bullet.Position, out _, out _));
@@ -193,6 +193,7 @@ Run("Concrete cube and house still catch high-speed segments", () =>
     Check(house.TryHitSegment(p + Vector3.UnitZ * 10f, p - Vector3.UnitZ * 10f, out _, out _));
 });
 
+ConcretePhysicsTests.Run(Run);
 Console.WriteLine($"{passed} passed, {failed} failed");
 foreach (WeaponProfile weapon in Weapons())
     Console.WriteLine($"MODEL ESTIMATE {weapon.DisplayName}: normal-incidence limit {Solve(weapon, 800f).BallisticLimitMps:0} m/s");

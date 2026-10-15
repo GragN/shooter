@@ -29,7 +29,8 @@ internal sealed class MaterialProfile
     public float Friction { get; init; } = 0.72f;
 
     /// <summary>
-    /// Обычный конструкционный бетон порядка C30/37.
+    /// Неармированный бетон с номинальной прочностью на сжатие 40 МПа.
+    /// Набор игровых параметров, а не аттестованный состав или точный класс.
     /// </summary>
     public static MaterialProfile NormalConcrete { get; } = new()
     {

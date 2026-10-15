@@ -76,12 +76,27 @@ internal sealed partial class SniperGame
                 case 11:
                     game._activeScene = SceneType.RangeCube;
                     game.SetActiveSceneDistance(100f);
+                    // Aim at the raised concrete sample, rather than below its bottom face.
+                    ShootConcrete(3);
+                    if (game._target.DetachedMassKg <= 0 || game._target.LastImpact.Perforated)
+                        throw new Exception("A .50 shot did not damage / incorrectly perforated intact 1 m concrete");
                     break;
                 case 13:
+                    Capture("concrete");
+                    // Repeated hits update the cached damage mesh, and reset must
+                    // clear both physical bodies and their rendering resources.
+                    ShootConcrete(0);
+                    for (int i=0; i<120; i++) game._target.UpdatePhysics(1f/120f, 0f);
+                    break;
+                case 15:
+                    Capture("concrete-debris");
+                    game.RestoreActiveDestructible();
+                    if (game._target.Fragments.Count != 0 || game._target.Integrity01 != 1f)
+                        throw new Exception("Concrete reset did not restore intact sample");
                     game._activeScene = SceneType.DestructibleHouse;
                     game.SetActiveSceneDistance(100f);
                     break;
-                case 15:
+                case 17:
                     complete = true;
                     game.Close();
                     break;
@@ -90,7 +105,7 @@ internal sealed partial class SniperGame
         game.Run();
         if (!complete)
             throw new Exception("Graphics smoke test ended before checks completed");
-        Console.WriteLine($"PASS graphics: {frames} frames, three scenes, menu, observer/PIP, steel impacts, no GL errors");
+        Console.WriteLine($"PASS graphics: {frames} frames, three scenes, menu, observer/PIP, steel + concrete impacts and reset, no GL errors");
         return 0;
 
         void Shoot(int weapon, float seconds)
@@ -105,6 +120,19 @@ internal sealed partial class SniperGame
             game.Fire();
             for (int i = 0; i < seconds / BallisticStepSeconds; i++)
                 game.StepBallistics(BallisticStepSeconds);
+        }
+        void ShootConcrete(int weapon)
+        {
+            game._bullets.Clear();
+            game._yaw = game._targetYaw = -90f;
+            game._pitch = game._targetPitch = MathHelper.RadiansToDegrees(MathF.Atan2(
+                game._target.Position.Y-game._cameraPosition.Y,game._target.DistanceMeters));
+            game._aimSwayYaw = game._aimSwayPitch = 0f;
+            game._activeWeaponIndex = weapon;
+            game._zeroDistanceMeters = 100;
+            game.RecalculateZeroing();
+            game.Fire();
+            for (int i=0; i<400; i++) game.StepBallistics(BallisticStepSeconds);
         }
         void Capture(string name)
         {

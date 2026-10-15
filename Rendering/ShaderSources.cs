@@ -6,6 +6,7 @@ internal static class ShaderSources
         #version 330 core
         layout (location = 0) in vec3 aPosition;
         layout (location = 1) in vec3 aNormal;
+        layout (location = 2) in vec3 aColor;
 
         uniform mat4 model;
         uniform mat4 view;
@@ -13,12 +14,14 @@ internal static class ShaderSources
 
         out vec3 Normal;
         out vec3 WorldPosition;
+        out vec3 SurfaceColor;
 
         void main()
         {
             mat3 normalMatrix = transpose(inverse(mat3(model)));
             Normal = normalMatrix * aNormal;
             WorldPosition = vec3(model * vec4(aPosition, 1.0));
+            SurfaceColor = aColor;
             gl_Position = projection * view * model * vec4(aPosition, 1.0);
         }
         """;
@@ -29,6 +32,7 @@ internal static class ShaderSources
 
         in vec3 Normal;
         in vec3 WorldPosition;
+        in vec3 SurfaceColor;
 
         uniform vec3 objectColor;
         uniform int useLighting;
@@ -54,7 +58,8 @@ internal static class ShaderSources
                 FragColor = vec4(objectColor * brightness + vec3(0.32) * specular, 1.0);
                 return;
             }
-            FragColor = vec4(objectColor * brightness, 1.0);
+            vec3 baseColor = useLighting == 3 ? SurfaceColor : objectColor;
+            FragColor = vec4(baseColor * brightness, 1.0);
         }
         """;
 }

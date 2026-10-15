@@ -190,7 +190,7 @@ internal sealed class Bullet
         _lingerAfterImpact = 0.18f;
     }
 
-    public void ContinueAfterSteelImpact(Vector3 exitPosition, Vector3 exitVelocity, float massKg)
+    public void ContinueAfterMaterialImpact(Vector3 exitPosition, Vector3 exitVelocity, float massKg)
     {
         Position = PreviousPosition = exitPosition;
         Velocity = PreviousVelocity = exitVelocity;

@@ -9,7 +9,7 @@ internal sealed class Mesh : IDisposable
     private readonly int _ebo;
     private readonly int _indexCount;
 
-    internal Mesh(float[] vertices, uint[] indices)
+    internal Mesh(float[] vertices, uint[] indices, bool vertexColors = false)
     {
         _indexCount = indices.Length;
 
@@ -25,12 +25,17 @@ internal sealed class Mesh : IDisposable
         GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ebo);
         GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, BufferUsageHint.StaticDraw);
 
-        const int stride = 6 * sizeof(float);
+        int stride = (vertexColors ? 9 : 6) * sizeof(float);
         GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, stride, 0);
         GL.EnableVertexAttribArray(0);
 
         GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, stride, 3 * sizeof(float));
         GL.EnableVertexAttribArray(1);
+        if (vertexColors)
+        {
+            GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, stride, 6 * sizeof(float));
+            GL.EnableVertexAttribArray(2);
+        }
 
         GL.BindVertexArray(0);
     }

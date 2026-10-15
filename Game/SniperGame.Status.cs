@@ -30,7 +30,7 @@ internal sealed partial class SniperGame
         if (_distanceMenuOpen)
         {
             string menuSceneName = SceneHudName(_menuScene);
-            Title = $"Sniper 3D v3.4 STEEL | SETTINGS | {menuSceneName} | {_weapons[_menuWeaponIndex].DisplayName} | {_menuDistanceMeters} m | {ScopeMagnifications[_menuScopeMagnificationIndex]:0}x | Wind max {_menuWindLimitMps} m/s | Mouse + APPLY | M/Esc cancel";
+            Title = $"Sniper 3D v3.5 MATERIAL PHYSICS | SETTINGS | {menuSceneName} | {_weapons[_menuWeaponIndex].DisplayName} | {_menuDistanceMeters} m | {ScopeMagnifications[_menuScopeMagnificationIndex]:0}x | Wind max {_menuWindLimitMps} m/s | Mouse + APPLY | M/Esc cancel";
         }
         else
         {
@@ -47,7 +47,7 @@ internal sealed partial class SniperGame
             string condition = _activeScene == SceneType.SteelPlate
                 ? $"Holes {_steel.Holes.Count} | Plate yaw {_steel.YawDegrees:0} deg | [ ] rotate"
                 : $"Structure {ActiveSceneIntegrity01 * 100f:0}%";
-            Title = $"Sniper 3D v3.4 STEEL | {ActiveSceneHudName} | {ActiveWeapon.DisplayName} | {ActiveSceneDistanceMeters:0} m | Scope {ScopeMagnifications[_scopeMagnificationIndex]:0}x | ZERO {_zeroDistanceMeters} m | Wind max {_activeWindLimitMps} m/s | {cameraStatus} | {stabilizationStatus} | {condition} | Debris {ActiveSceneDebrisCount} | Hits {_hits}/{_shots} ({accuracy:0}%) | {_lastShot} | {telemetry} | {fireHint} | RMB toggle zoom | Wheel ZERO 0..2000m / 100m | {(_impactPredictionEnabled ? $"T LOCK {_impactPredictionLockedRangeMeters:0}m" : "T LOCK OFF")} | 1 shooter | 2 bullet cam | 3 target cam + PIP | O no recoil/sway | M settings | R restore";
+            Title = $"Sniper 3D v3.5 MATERIAL PHYSICS | {ActiveSceneHudName} | {ActiveWeapon.DisplayName} | {ActiveSceneDistanceMeters:0} m | Scope {ScopeMagnifications[_scopeMagnificationIndex]:0}x | ZERO {_zeroDistanceMeters} m | Wind max {_activeWindLimitMps} m/s | {cameraStatus} | {stabilizationStatus} | {condition} | Debris {ActiveSceneDebrisCount} | Hits {_hits}/{_shots} ({accuracy:0}%) | {_lastShot} | {telemetry} | {fireHint} | RMB toggle zoom | Wheel ZERO 0..2000m / 100m | {(_impactPredictionEnabled ? $"T LOCK {_impactPredictionLockedRangeMeters:0}m" : "T LOCK OFF")} | 1 shooter | 2 bullet cam | 3 target cam + PIP | O no recoil/sway | M settings | R restore";
         }
     }
 }
