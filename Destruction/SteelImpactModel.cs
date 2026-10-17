@@ -36,7 +36,7 @@ internal static class SteelImpactModel
             normal = -normal;
         float cosine = Math.Clamp(-Vector3.Dot(direction, normal), 0.02f, 1f);
         float angle = MathHelper.RadiansToDegrees(MathF.Acos(cosine));
-        bool steelCore = projectile.UsesSteelResponse;
+        bool steelCore = projectile.Construction == ProjectileConstruction.MildSteelCoreFmj;
         float diameter = projectile.DiameterMeters * (steelCore ? 1.05f : 1.35f);
         float pathThickness = thicknessMeters / cosine;
         float area = MathF.PI * diameter * diameter * 0.25f;

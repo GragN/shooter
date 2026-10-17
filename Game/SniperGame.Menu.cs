@@ -67,11 +67,30 @@ internal sealed partial class SniperGame
             return;
         }
 
-        for (int i = 0; i < _weapons.Length; i++)
+        if (PointInRect(mouse, layout.Weapon1Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight))
         {
-            if (!PointInRect(mouse, layout.WeaponButtonLeft(i), layout.WeaponTop,
-                layout.WeaponButtonWidth, layout.WeaponButtonHeight)) continue;
-            _menuWeaponIndex = i;
+            _menuWeaponIndex = 0;
+            UpdateWindowTitle();
+            return;
+        }
+
+        if (PointInRect(mouse, layout.Weapon2Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight))
+        {
+            _menuWeaponIndex = 1;
+            UpdateWindowTitle();
+            return;
+        }
+
+        if (PointInRect(mouse, layout.Weapon3Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight))
+        {
+            _menuWeaponIndex = 2;
+            UpdateWindowTitle();
+            return;
+        }
+
+        if (PointInRect(mouse, layout.Weapon4Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight))
+        {
+            _menuWeaponIndex = 3;
             UpdateWindowTitle();
             return;
         }
@@ -190,8 +209,12 @@ internal sealed partial class SniperGame
         float sceneTop = top + 62f;
 
         const float weaponGap = 10f;
-        float weaponButtonWidth = (sliderRight - sliderLeft - weaponGap * (_weapons.Length - 1)) / _weapons.Length;
+        float weaponButtonWidth = (sliderRight - sliderLeft - weaponGap * 3f) / 4f;
         const float weaponButtonHeight = 38f;
+        float weapon1Left = sliderLeft;
+        float weapon2Left = weapon1Left + weaponButtonWidth + weaponGap;
+        float weapon3Left = weapon2Left + weaponButtonWidth + weaponGap;
+        float weapon4Left = weapon3Left + weaponButtonWidth + weaponGap;
         float weaponTop = top + 145f;
 
         float distanceSliderY = top + 300f;
@@ -210,7 +233,7 @@ internal sealed partial class SniperGame
             left, top, right, bottom,
             sliderLeft, sliderRight,
             scene1Left, scene2Left, scene3Left, sceneTop, sceneButtonWidth, sceneButtonHeight,
-            sliderLeft, weaponTop, weaponButtonWidth, weaponButtonHeight, weaponGap,
+            weapon1Left, weapon2Left, weapon3Left, weapon4Left, weaponTop, weaponButtonWidth, weaponButtonHeight,
             distanceSliderY, scopeSliderY, windSliderY,
             applyLeft, cancelLeft, buttonTop, buttonWidth, buttonHeight);
     }
@@ -228,11 +251,13 @@ internal sealed partial class SniperGame
         float SceneTop,
         float SceneButtonWidth,
         float SceneButtonHeight,
-        float WeaponLeft,
+        float Weapon1Left,
+        float Weapon2Left,
+        float Weapon3Left,
+        float Weapon4Left,
         float WeaponTop,
         float WeaponButtonWidth,
         float WeaponButtonHeight,
-        float WeaponGap,
         float DistanceSliderY,
         float ScopeSliderY,
         float WindSliderY,
@@ -240,10 +265,7 @@ internal sealed partial class SniperGame
         float CancelLeft,
         float ButtonTop,
         float ButtonWidth,
-        float ButtonHeight)
-    {
-        public float WeaponButtonLeft(int index) => WeaponLeft + index * (WeaponButtonWidth + WeaponGap);
-    }
+        float ButtonHeight);
 
     private void ApplyDistanceMenu()
     {
@@ -271,7 +293,6 @@ internal sealed partial class SniperGame
         _trackedBullet = null;
         _ballisticAccumulator = 0f;
         _automaticFireCooldown = 0f;
-        _shotCooldownSeconds = 0f;
         _lastMuzzleVelocity = 0f;
         _lastFlightTime = 0f;
         _lastImpactSpeed = 0f;
@@ -295,7 +316,6 @@ internal sealed partial class SniperGame
         _trackedBullet = null;
         _ballisticAccumulator = 0f;
         _automaticFireCooldown = 0f;
-        _shotCooldownSeconds = 0f;
 
         _lastMuzzleVelocity = 0f;
         _lastFlightTime = 0f;

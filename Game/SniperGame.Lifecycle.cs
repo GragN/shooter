@@ -166,7 +166,6 @@ internal sealed partial class SniperGame
         }
 
         float dt = MathF.Min((float)args.Time, 0.05f);
-        UpdateWeaponCycle(dt);
         float lookAlpha = 1f - MathF.Exp(-LookSmoothing * dt);
         float zoomAlpha = 1f - MathF.Exp(-ZoomSmoothing * dt);
 
@@ -394,7 +393,6 @@ internal sealed partial class SniperGame
         {
             DrawSteelHud();
             DrawConcreteHud();
-            DrawWeaponCycleHud();
         }
 
         // Любой PIP-pass обязан вернуть полный viewport перед SwapBuffers.

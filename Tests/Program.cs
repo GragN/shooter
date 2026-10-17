@@ -34,7 +34,7 @@ Run("Grazing .50 impact ricochets away with energy loss", () =>
     Check(hit.ExitVelocity.Length < 600f);
     Check(hit.DentDepthMeters < SteelPlateTarget.ThicknessMeters);
 });
-Run("Energy and mass budgets over 1900 impact scenarios", () =>
+Run("Energy and mass budgets over 1520 impact scenarios", () =>
 {
     foreach (WeaponProfile weapon in Weapons())
     for (int speed = 50; speed <= 1000; speed += 50)
@@ -194,7 +194,6 @@ Run("Concrete cube and house still catch high-speed segments", () =>
 });
 
 ConcretePhysicsTests.Run(Run);
-WeaponPhysicsTests.Run(Run);
 Console.WriteLine($"{passed} passed, {failed} failed");
 foreach (WeaponProfile weapon in Weapons())
     Console.WriteLine($"MODEL ESTIMATE {weapon.DisplayName}: normal-incidence limit {Solve(weapon, 800f).BallisticLimitMps:0} m/s");
@@ -211,7 +210,8 @@ static void Near(float actual, float expected, float tolerance)
     if (MathF.Abs(actual - expected) > tolerance || !float.IsFinite(actual))
         throw new Exception($"Expected {expected} +/- {tolerance}, got {actual}");
 }
-static IEnumerable<WeaponProfile> Weapons() => WeaponProfile.CreateAll();
+static IEnumerable<WeaponProfile> Weapons() => new[]
+{ WeaponProfile.Svd(), WeaponProfile.MakarovPm(), WeaponProfile.Rpk(), WeaponProfile.BarrettM82A1() };
 static SteelImpactResult Solve(WeaponProfile weapon, float speed, float degrees = 0f, float thickness = 0.01f)
 {
     float a = MathHelper.DegreesToRadians(degrees);

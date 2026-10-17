@@ -97,56 +97,6 @@ internal sealed partial class SniperGame
                     game.SetActiveSceneDistance(100f);
                     break;
                 case 17:
-                    game.OpenDistanceMenu();
-                    var weaponsLayout = game.GetDistanceMenuLayout();
-                    for (int i = 0; i < game._weapons.Length; i++)
-                    {
-                        float left = weaponsLayout.WeaponButtonLeft(i);
-                        if (left < weaponsLayout.SliderLeft || left + weaponsLayout.WeaponButtonWidth > weaponsLayout.SliderRight + 0.01f)
-                            throw new Exception("Weapon button lies outside menu");
-                        game.HandleDistanceMenuMouseDown(new(left + weaponsLayout.WeaponButtonWidth * 0.5f,
-                            weaponsLayout.WeaponTop + weaponsLayout.WeaponButtonHeight * 0.5f));
-                        if (game._menuWeaponIndex != i)
-                            throw new Exception($"Menu click did not select weapon {i}");
-                    }
-                    game._menuScene = SceneType.RangeCube;
-                    game.ApplyDistanceMenu();
-                    if (game.ActiveWeapon.HudName != "DENEL NTW-20" || game._shotCooldownSeconds != 0f)
-                        throw new Exception("NTW-20 selection did not apply / retained old cooldown");
-                    ShootConcrete(4);
-                    if (game._target.DetachedMassKg <= 0 || game._lastImpactEnergy < 20000f)
-                        throw new Exception("NTW-20 did not hit concrete with its own projectile profile");
-                    int count = game._shots;
-                    game.Fire();
-                    if (game._shots != count) throw new Exception("NTW-20 fired before cycling");
-                    game.UpdateWeaponCycle(game.ActiveWeapon.ShotIntervalSeconds - 0.1f);
-                    game.Fire();
-                    if (game._shots != count) throw new Exception("NTW-20 cycled too early");
-                    game.UpdateWeaponCycle(0.2f);
-                    game.Fire();
-                    if (game._shots != count + 1) throw new Exception("NTW-20 did not fire after cycling");
-                    game._bullets.Clear();
-                    break;
-                case 19:
-                    Capture("ntw-concrete");
-                    game.OpenDistanceMenu();
-                    break;
-                case 21:
-                    Capture("ntw-menu");
-                    game._menuScene = SceneType.SteelPlate;
-                    game.ApplyDistanceMenu();
-                    Shoot(4, 0.4f);
-                    if (game._steel.Holes.Count != 1 || !game._lastShot.StartsWith("STEEL PERFORATED") || game._lastImpactEnergy < 20000f)
-                        throw new Exception("NTW-20 did not perforate the steel scene");
-                    break;
-                case 23:
-                    Capture("ntw-steel");
-                    game.RestoreActiveDestructible();
-                    if (game._shotCooldownSeconds != 0f || game._steel.Holes.Count != 0)
-                        throw new Exception("Reset did not clear NTW-20 cycling and steel damage");
-                    game._activeScene = SceneType.DestructibleHouse;
-                    break;
-                case 25:
                     complete = true;
                     game.Close();
                     break;
@@ -155,7 +105,7 @@ internal sealed partial class SniperGame
         game.Run();
         if (!complete)
             throw new Exception("Graphics smoke test ended before checks completed");
-        Console.WriteLine($"PASS graphics: {frames} frames, three scenes, five menu weapons, NTW-20 cycling, steel + concrete impacts, observer/PIP and reset, no GL errors");
+        Console.WriteLine($"PASS graphics: {frames} frames, three scenes, menu, observer/PIP, steel + concrete impacts and reset, no GL errors");
         return 0;
 
         void Shoot(int weapon, float seconds)
@@ -165,7 +115,6 @@ internal sealed partial class SniperGame
             game._pitch = game._targetPitch = 0f;
             game._aimSwayYaw = game._aimSwayPitch = 0f;
             game._activeWeaponIndex = weapon;
-            game._shotCooldownSeconds = 0f;
             game._zeroDistanceMeters = 100;
             game.RecalculateZeroing();
             game.Fire();
@@ -180,7 +129,6 @@ internal sealed partial class SniperGame
                 game._target.Position.Y-game._cameraPosition.Y,game._target.DistanceMeters));
             game._aimSwayYaw = game._aimSwayPitch = 0f;
             game._activeWeaponIndex = weapon;
-            game._shotCooldownSeconds = 0f;
             game._zeroDistanceMeters = 100;
             game.RecalculateZeroing();
             game.Fire();

@@ -217,15 +217,8 @@ internal sealed partial class SniperGame
         }
     }
 
-    private void UpdateWeaponCycle(float dt)
-        => _shotCooldownSeconds = MathF.Max(0f, _shotCooldownSeconds - MathF.Max(0f, dt));
-
     private void Fire()
     {
-        if (_shotCooldownSeconds > 0f)
-            return;
-
-        _shotCooldownSeconds = ActiveWeapon.ShotIntervalSeconds;
         _shots++;
 
         // Пристрелка не двигает перекрестие: она меняет угол ствола относительно
