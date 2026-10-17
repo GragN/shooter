@@ -22,7 +22,7 @@ internal static class ConcreteCubeImpactModel
         Vector3 normal = Vector3.Normalize(surfaceNormal);
         if (Vector3.Dot(direction, normal) > 0f) normal = -normal;
         float cosine = Math.Clamp(-Vector3.Dot(direction, normal), 0f, 1f);
-        bool steelCore = p.Construction == ProjectileConstruction.MildSteelCoreFmj;
+        bool steelCore = p.UsesSteelResponse;
         float diameter = p.DiameterMeters * (steelCore ? 1.05f : 1.4f);
         float area = MathF.PI * diameter * diameter * 0.25f;
         float resistance = material.CompressiveStrengthPa * 10f * (1f - 0.35f * Math.Clamp(localDamage, 0f, 1f));

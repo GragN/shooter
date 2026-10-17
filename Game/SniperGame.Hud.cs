@@ -8,6 +8,20 @@ namespace Sniper3D;
 
 internal sealed partial class SniperGame
 {
+    private void DrawWeaponCycleHud()
+    {
+        if (ActiveWeapon.ShotIntervalSeconds <= 0f) return;
+        string status = _shotCooldownSeconds > 0f ? $"BOLT {_shotCooldownSeconds:0.0} S" : "READY - LMB FIRE";
+        string text = $"{ActiveWeapon.HudName} - {status}";
+        var lines = new List<float>();
+        float scale = MathF.Min(3.6f, (ClientSize.X - 24f) / MeasureHudText(text, 1f));
+        DrawHudText(lines, text, (ClientSize.X - MeasureHudText(text, scale)) * 0.5f,
+            ClientSize.Y - 28f, scale);
+        GL.Disable(EnableCap.DepthTest);
+        DrawHudLines(lines, new(0.88f, 0.90f, 0.93f), 1.5f);
+        GL.Enable(EnableCap.DepthTest);
+    }
+
     private int _hudVertexCapacity = 4096;
     private void CreateHudOverlay()
     {
@@ -155,10 +169,6 @@ internal sealed partial class SniperGame
         bool scene1Hover = PointInRect(mouse, layout.Scene1Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
         bool scene2Hover = PointInRect(mouse, layout.Scene2Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
         bool scene3Hover = PointInRect(mouse, layout.Scene3Left, layout.SceneTop, layout.SceneButtonWidth, layout.SceneButtonHeight);
-        bool weapon1Hover = PointInRect(mouse, layout.Weapon1Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
-        bool weapon2Hover = PointInRect(mouse, layout.Weapon2Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
-        bool weapon3Hover = PointInRect(mouse, layout.Weapon3Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
-        bool weapon4Hover = PointInRect(mouse, layout.Weapon4Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
 
         DrawHudFilledRect(layout.Left, layout.Top, layout.Right - layout.Left, layout.Bottom - layout.Top, new Vector3(0.10f, 0.11f, 0.12f));
 
@@ -175,22 +185,14 @@ internal sealed partial class SniperGame
             _menuScene == SceneType.SteelPlate ? new Vector3(0.34f, 0.36f, 0.38f) :
             scene3Hover ? new Vector3(0.25f, 0.27f, 0.29f) : new Vector3(0.17f, 0.18f, 0.19f));
 
-        DrawHudFilledRect(
-            layout.Weapon1Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight,
-            _menuWeaponIndex == 0 ? new Vector3(0.34f, 0.36f, 0.38f) :
-            weapon1Hover ? new Vector3(0.25f, 0.27f, 0.29f) : new Vector3(0.17f, 0.18f, 0.19f));
-        DrawHudFilledRect(
-            layout.Weapon2Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight,
-            _menuWeaponIndex == 1 ? new Vector3(0.34f, 0.36f, 0.38f) :
-            weapon2Hover ? new Vector3(0.25f, 0.27f, 0.29f) : new Vector3(0.17f, 0.18f, 0.19f));
-        DrawHudFilledRect(
-            layout.Weapon3Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight,
-            _menuWeaponIndex == 2 ? new Vector3(0.34f, 0.36f, 0.38f) :
-            weapon3Hover ? new Vector3(0.25f, 0.27f, 0.29f) : new Vector3(0.17f, 0.18f, 0.19f));
-        DrawHudFilledRect(
-            layout.Weapon4Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight,
-            _menuWeaponIndex == 3 ? new Vector3(0.34f, 0.36f, 0.38f) :
-            weapon4Hover ? new Vector3(0.25f, 0.27f, 0.29f) : new Vector3(0.17f, 0.18f, 0.19f));
+        for (int i = 0; i < _weapons.Length; i++)
+        {
+            float weaponLeft = layout.WeaponButtonLeft(i);
+            bool hover = PointInRect(mouse, weaponLeft, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
+            DrawHudFilledRect(weaponLeft, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight,
+                _menuWeaponIndex == i ? new Vector3(0.34f, 0.36f, 0.38f) :
+                hover ? new Vector3(0.25f, 0.27f, 0.29f) : new Vector3(0.17f, 0.18f, 0.19f));
+        }
 
         DrawHudFilledRect(
             layout.ApplyLeft, layout.ButtonTop, layout.ButtonWidth, layout.ButtonHeight,
@@ -238,19 +240,15 @@ internal sealed partial class SniperGame
         float weaponLabelWidth = MeasureHudText(weaponLabel, sectionScale);
         DrawHudText(lines, weaponLabel, (ClientSize.X - weaponLabelWidth) * 0.5f, layout.Top + 112f, sectionScale);
 
-        AddHudRect(lines, layout.Weapon1Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
-        AddHudRect(lines, layout.Weapon2Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
-        AddHudRect(lines, layout.Weapon3Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
-        AddHudRect(lines, layout.Weapon4Left, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
-
-        const float weaponTextScale = 3.0f;
-        float[] weaponLefts = { layout.Weapon1Left, layout.Weapon2Left, layout.Weapon3Left, layout.Weapon4Left };
         for (int i = 0; i < _weapons.Length; i++)
         {
+            float weaponLeft = layout.WeaponButtonLeft(i);
+            AddHudRect(lines, weaponLeft, layout.WeaponTop, layout.WeaponButtonWidth, layout.WeaponButtonHeight);
             string weaponName = _weapons[i].HudName;
+            float weaponTextScale = MathF.Min(3f, (layout.WeaponButtonWidth - 12f) / MeasureHudText(weaponName, 1f));
             float weaponNameWidth = MeasureHudText(weaponName, weaponTextScale);
             DrawHudText(lines, weaponName,
-                weaponLefts[i] + (layout.WeaponButtonWidth - weaponNameWidth) * 0.5f,
+                weaponLeft + (layout.WeaponButtonWidth - weaponNameWidth) * 0.5f,
                 layout.WeaponTop + 10f, weaponTextScale);
         }
 
@@ -259,6 +257,8 @@ internal sealed partial class SniperGame
         string weaponStats = menuWeapon.IsAutomatic
             ? $"{menuBallistics.MassKg * 1000f:0.0}G  {menuBallistics.MuzzleVelocityMps:0}M/S  {menuWeapon.RateOfFireRpm:0}RPM"
             : $"{menuBallistics.MassKg * 1000f:0.0}G  {menuBallistics.MuzzleVelocityMps:0}M/S";
+        if (menuWeapon.ShotIntervalSeconds > 0f)
+            weaponStats += $"  {menuWeapon.ShotIntervalSeconds:0.0}S CYCLE";
         float weaponStatsWidth = MeasureHudText(weaponStats, 3.4f);
         DrawHudText(lines, weaponStats, (ClientSize.X - weaponStatsWidth) * 0.5f, layout.Top + 188f, 3.4f);
 

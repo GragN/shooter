@@ -13,6 +13,10 @@ internal sealed class WeaponProfile
     public bool IsAutomatic { get; init; }
     public float RateOfFireRpm { get; init; }
     public float RecoilPitchDegrees { get; init; } = 0.55f;
+    public float ShotIntervalSeconds { get; init; }
+
+    public static WeaponProfile[] CreateAll() =>
+        new[] { Svd(), MakarovPm(), Rpk(), BarrettM82A1(), DenelNtw20() };
 
     // Высота оптической оси над осью ствола. Нужна для физически корректной
     // пристрелки: пуля стартует ниже линии визирования и пересекает её на ZERO.
@@ -124,6 +128,37 @@ internal sealed class WeaponProfile
             GyroscopicStabilityFactor = 1.70f,
             DragModel = DragModelKind.G1,
             BallisticCoefficient = 0.620f,
+            AirDensityKgPerM3 = 1.225f,
+            SpeedOfSoundMps = 340.294f,
+            GravityMps2 = 9.80665f
+        }
+    };
+
+    /// <summary>
+    /// Denel NTW-20, 20x82 mm, inert steel-body training projectile.
+    /// Nominal 110 g / 720 m/s; BC, spin and cycling are gameplay estimates,
+    /// not a measured firing table. No explosive or armour-piercing payload.
+    /// </summary>
+    public static WeaponProfile DenelNtw20() => new()
+    {
+        DisplayName = "Denel NTW-20 20x82 TP",
+        HudName = "DENEL NTW-20",
+        IsAutomatic = false,
+        ShotIntervalSeconds = 3f,
+        RecoilPitchDegrees = 0.95f,
+        SightHeightMeters = 0.085f,
+        Ballistics = new BallisticProfile
+        {
+            MassKg = 0.110f,
+            DiameterMeters = 0.020f,
+            MuzzleVelocityMps = 720f,
+            Construction = ProjectileConstruction.InertSteelBody,
+            MuzzleVelocityStdDevMps = 4f,
+            RiflingTwistDirection = RiflingTwistDirection.Right,
+            TwistRateMetersPerTurn = 0.560f,
+            GyroscopicStabilityFactor = 1.80f,
+            DragModel = DragModelKind.G1,
+            BallisticCoefficient = 0.650f,
             AirDensityKgPerM3 = 1.225f,
             SpeedOfSoundMps = 340.294f,
             GravityMps2 = 9.80665f

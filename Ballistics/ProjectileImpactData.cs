@@ -19,6 +19,11 @@ internal readonly record struct ProjectileImpactData(
     Vector3 Direction,
     ProjectileConstruction Construction = ProjectileConstruction.LeadCoreFmj)
 {
+    // Steel-body training rounds use the existing steel response as a proxy,
+    // not a new calibrated AP/HE terminal model.
+    public bool UsesSteelResponse => Construction is ProjectileConstruction.MildSteelCoreFmj
+        or ProjectileConstruction.InertSteelBody;
+
     public static ProjectileImpactData From(BallisticProfile profile, Vector3 velocity, float? remainingMassKg = null)
     {
         float speed = velocity.Length;

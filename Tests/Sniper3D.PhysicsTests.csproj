@@ -10,6 +10,7 @@
     <PackageReference Include="OpenTK" Version="4.9.4" />
     <Compile Include="Program.cs" />
     <Compile Include="ConcreteTests.cs" />
+    <Compile Include="WeaponTests.cs" />
     <Compile Include="../Ballistics/*.cs" Link="Ballistics/%(Filename)%(Extension)" />
     <Compile Include="../Destruction/*.cs" Link="Destruction/%(Filename)%(Extension)" />
     <Compile Include="../Rendering/SteelPlateGeometry.cs" Link="SteelPlateGeometry.cs" />

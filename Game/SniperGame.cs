@@ -58,13 +58,7 @@ internal sealed partial class SniperGame : GameWindow
     private readonly Target _target = new();
     private readonly HouseTarget _house = new();
     private readonly SteelPlateTarget _steel = new();
-    private readonly WeaponProfile[] _weapons =
-    {
-        WeaponProfile.Svd(),
-        WeaponProfile.MakarovPm(),
-        WeaponProfile.Rpk(),
-        WeaponProfile.BarrettM82A1()
-    };
+    private readonly WeaponProfile[] _weapons = WeaponProfile.CreateAll();
     private readonly WindField _wind = new();
     private readonly List<Bullet> _bullets = new();
 
@@ -104,6 +98,7 @@ internal sealed partial class SniperGame : GameWindow
     private float _ballisticAccumulator;
     private float _titleRefreshTimer;
     private float _automaticFireCooldown;
+    private float _shotCooldownSeconds;
     private float _aimSwayTime;
     private float _aimSwayBlend;
     private float _aimSwayYaw;
